@@ -7,6 +7,11 @@ const ADMIN_PREFIX = '/admin';
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password'];
 
 export async function updateSession(request: NextRequest) {
+  // Demo mode: no session to refresh, no redirects — every route is open.
+  if (process.env.NEXT_PUBLIC_DEMO_MODE === 'true') {
+    return NextResponse.next({ request });
+  }
+
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient<Database>(

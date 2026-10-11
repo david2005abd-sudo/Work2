@@ -2,21 +2,29 @@ import type { ReactNode } from 'react';
 import { AppSidebar } from '@/components/layout/app-sidebar';
 import { AppTopbar } from '@/components/layout/app-topbar';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
+import { getDemoUser } from '@/lib/demo';
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const demo = await getDemoUser();
 
-  let profile: { full_name: string | null; avatar_url: string | null } | null = null;
-  if (user) {
-    const { data } = await supabase
-      .from('profiles')
-      .select('full_name, avatar_url')
-      .eq('id', user.id)
-      .maybeSingle();
-    profile = data;
+  let user = demo?.user ?? null;
+  let profile: { full_name: string | null; avatar_url: string | null } | null =
+    demo?.profile ?? null;
+
+  if (!demo) {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
+    user = authUser;
+    if (authUser) {
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', authUser.id)
+        .maybeSingle();
+      profile = data;
+    }
   }
 
   return (

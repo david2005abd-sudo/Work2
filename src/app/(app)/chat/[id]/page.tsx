@@ -6,14 +6,14 @@ import { ConversationService } from '@/server/services/conversation.service';
 import { MessageService } from '@/server/services/message.service';
 import { ChatShell } from '@/components/chat/chat-shell';
 import { idParamSchema } from '@/lib/validation/common';
+import { getDemoUser } from '@/lib/demo';
 
 type PageProps = { params: Promise<{ id: string }> };
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
   const { id } = await params;
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { title: 'محادثة' };
+  const demo = await getDemoUser();
+  const supabase = demo?.supabase ?? (await createServerSupabaseClient());
   const { data } = await supabase.from('conversations').select('title').eq('id', id).maybeSingle();
   return {
     title: data?.title ?? 'محادثة',
@@ -26,8 +26,9 @@ export default async function ConversationPage({ params }: PageProps) {
   const parsed = idParamSchema.safeParse({ id });
   if (!parsed.success) notFound();
 
-  const supabase = await createServerSupabaseClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const demo = await getDemoUser();
+  const supabase = demo?.supabase ?? (await createServerSupabaseClient());
+  const user = demo?.user ?? (await supabase.auth.getUser()).data.user;
   if (!user) notFound();
 
   let conversation;

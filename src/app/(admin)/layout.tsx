@@ -3,24 +3,36 @@ import { AdminSidebar } from '@/components/layout/admin-sidebar';
 import { AppTopbar } from '@/components/layout/app-topbar';
 import { createServerSupabaseClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { getDemoUser } from '@/lib/demo';
 
 export default async function AdminLayout({ children }: { children: ReactNode }) {
-  const supabase = await createServerSupabaseClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const demo = await getDemoUser();
 
-  if (!user) redirect('/login?next=/admin');
+  let user = demo?.user ?? null;
+  let profile = demo?.profile ?? null;
 
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role, full_name, avatar_url')
-    .eq('id', user.id)
-    .maybeSingle();
+  if (!demo) {
+    const supabase = await createServerSupabaseClient();
+    const {
+      data: { user: authUser },
+    } = await supabase.auth.getUser();
 
-  if (!profile || (profile.role !== 'admin' && profile.role !== 'owner')) {
-    redirect('/dashboard');
+    if (!authUser) redirect('/login?next=/admin');
+
+    const { data } = await supabase
+      .from('profiles')
+      .select('id, role, full_name, avatar_url')
+      .eq('id', authUser.id)
+      .maybeSingle();
+
+    if (!data || (data.role !== 'admin' && data.role !== 'owner')) {
+      redirect('/dashboard');
+    }
+    user = authUser;
+    profile = data;
   }
+
+  if (!user || !profile) redirect('/login?next=/admin');
 
   return (
     <div className="flex min-h-dvh">
