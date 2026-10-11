@@ -6,6 +6,9 @@ node_modules/
 out/
 next-env.d.ts
 
+# OpenNext (Cloudflare build output)
+.open-next/
+
 # Environment & secrets
 .env
 .env.*
