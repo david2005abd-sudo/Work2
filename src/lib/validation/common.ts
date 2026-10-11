@@ -20,8 +20,8 @@ export const usernameSchema = z
   .string()
   .min(3, 'اسم المستخدم قصير جدًا')
   .max(32, 'اسم المستخدم طويل جدًا')
-  .regex(/^[a-z0-9_]+$/, 'فقط أحرف إنجليزية صغيرة، أرقام، وشرطة سفلية')
-  .transform((v) => v.toLowerCase());
+  .transform((v) => v.toLowerCase())
+  .pipe(z.string().regex(/^[a-z0-9_]+$/, 'فقط أحرف إنجليزية صغيرة، أرقام، وشرطة سفلية'));
 
 export const paginationSchema = z.object({
   page: z.coerce.number().int().min(1).default(1),

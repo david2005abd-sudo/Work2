@@ -7,9 +7,9 @@ export const sendMessageSchema = z.object({
   model: z.string().min(1).max(80),
   content: z
     .string()
-    .min(1, 'الرسالة فارغة')
     .max(LIMITS.messageMaxLength, 'الرسالة طويلة جدًا')
-    .transform((v) => v.trim()),
+    .transform((v) => v.trim())
+    .pipe(z.string().min(1, 'الرسالة فارغة')),
   clientMessageId: z.string().min(1).max(64).optional(),
   systemPrompt: z.string().max(4000).optional(),
 });
